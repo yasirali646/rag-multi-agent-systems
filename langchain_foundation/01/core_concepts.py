@@ -59,10 +59,25 @@ def demo_batch_execuation(questions: list[dict]):
     for res in zip(result, questions):
         print(f"Input: {res[1]['text']} --> Output: {res[0]}")
 
-demo_batch_execuation([
-    {'text': 'Hello, how are you?'},
-    {'text': 'What is your name?'},
-    {'text': 'What is the capital of France?'},
-    {'text': 'What is the meaning of life?'},
-    {'text': 'What is the airspeed of a laden swallow?'}
-])
+def demo_streaming_execution(question: str):
+    """
+        Demonstrates streaming execution of a chain using LCEL and Runnables
+
+        Args:
+            question (str): The question to ask the assistant
+        
+        Returns:
+            None
+    """
+    prompt = ChatPromptTemplate.from_template(template="You are snarky assistant. Answer in one sentence. {question}") 
+    llm = ChatOpenRouter(model='openai/gpt-oss-120b', streaming=True)
+    parser = StrOutputParser()
+
+    chain = prompt | llm | parser
+
+    # Streaming execution
+    for chunk in chain.stream({'question': question}):
+        print(chunk, end='', flush=True)
+
+
+demo_streaming_execution("What is the airspeed of a laden swallow?")
