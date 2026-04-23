@@ -79,5 +79,27 @@ def demo_streaming_execution(question: str):
     for chunk in chain.stream({'question': question}):
         print(chunk, end='', flush=True)
 
+def demo_schma_inspection():
+    """
+        Demonstrates schema inspection of a chain using LCEL and Runnables
 
-demo_streaming_execution("What is the airspeed of a laden swallow?")
+        Args:
+            None
+        
+        Returns:
+            None
+    """
+    prompt = ChatPromptTemplate.from_template(template="You are snarky assistant. Answer in one sentence. {question}") 
+    llm = ChatOpenRouter(model='openai/gpt-oss-120b')
+    parser = StrOutputParser()
+
+    chain = prompt | llm | parser
+
+    # Schema inspection
+    print("Input schema:", chain.input_schema.model_json_schema())
+    print("Output schema:", chain.output_schema.model_json_schema())
+
+
+demo_schma_inspection()
+
+# demo_streaming_execution("What is the airspeed of a laden swallow?")
