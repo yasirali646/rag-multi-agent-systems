@@ -37,5 +37,36 @@ def parallel_chain_demo():
     print(results)
 
 
+def passthrough_chain_demo():
+    """ A chain that demonstrates the use of RunnablePassthrough to pass the same input to multiple branches of a parallel chain. """
+
+    prompt = ChatPromptTemplate.from_template(
+        template="""You are a helpful assistant that answers the following question based on the provided 
+        context: {context}\n
+        Question: {question}"""
+    )    
+    def fake_retriever(query):
+        return "LangChain is developed by LangSmith, a company that provides tools for debugging and monitoring language models."
+
+
+    chain = (
+        RunnableParallel(
+            context = RunnableLambda(fake_retriever),
+            question = RunnablePassthrough()
+        )
+        | RunnableLambda(
+            lambda inputs: {'context' : inputs['context'], 
+                            'question' : inputs['question']['question']} 
+        )
+        | prompt
+        | model
+        | StrOutputParser()
+    )
+
+    result = chain.invoke({'question': "Who developed LangChain?"})
+    print(result)
+
+
 if __name__ == "__main__":    
-    parallel_chain_demo()
+    # parallel_chain_demo()
+    passthrough_chain_demo()
