@@ -144,7 +144,42 @@ def branching_chain_demo():
         result = branch.invoke({'input': question})
         print(f"Question: {question}\nAnswer: {result}\n")
 
+def demo_debbuging():
+    prompt = ChatPromptTemplate.from_template("Say hello to {name}!")
+    chain = prompt | model | StrOutputParser()
+
+    # Method 1: Get configuration
+    print("Chain input schema:", chain.input_schema.model_json_schema())
+    print("Chain output schema:", chain.output_schema.model_json_schema())
+
+
+    # Method 2: Use with with_config for tracing
+    res = chain.with_config(
+        run_name = "greeting_chain_demo",
+        trace = True
+    ).invoke({'name': "Yasir"})
+    print("Result with tracing:", res)
+
+    # Method 3: Inspect intermediate steps
+    # Using RuunableLambda to inspect intermediate outputs
+
+    def log_step(x, step_name = ""):
+        print(f"--- [{step_name}] {type(x).__name__}: {str(x)[:100]} ---")
+        return x
+    
+    chain_with_inspection = (
+        prompt
+        | RunnableLambda(lambda x: log_step(x, "Prompt"))
+        | model
+        | RunnableLambda(lambda x: log_step(x, "Model"))
+        | StrOutputParser()
+    )
+    result = chain_with_inspection.invoke({'name': "Yasir"})
+    print("Final result:", result)
+
+
 if __name__ == "__main__":    
     # parallel_chain_demo()
     # passthrough_chain_demo()
-    branching_chain_demo()
+    # branching_chain_demo()
+    demo_debbuging()
